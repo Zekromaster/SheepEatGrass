@@ -1,0 +1,7 @@
+= Sheep Eat Grass =
+
+Backport to Minecraft Beta 1.7.3 of the feature from later versions where
+sheep regrow their wool by eating grass.
+
+== Installation ==
+This is a https://babric.github.io/[Babric] mod, just put it into your "mods" folder.

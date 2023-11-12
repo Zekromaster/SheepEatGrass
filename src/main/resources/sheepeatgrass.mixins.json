@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.zekromaster.sheepeatgrass.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "SheepMixin"
+  ],
+  "server": [],
+  "client": [
+    "LivingEntityRendererMixin",
+    "SheepModelMixin",
+    "ShornSheepModelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
