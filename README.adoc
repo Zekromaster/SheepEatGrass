@@ -5,3 +5,8 @@ sheep regrow their wool by eating grass.
 
 == Installation ==
 This is a https://babric.github.io/[Babric] mod, just put it into your "mods" folder.
+
+== API ==
+This mod provides an API for other mods to add custom behaviour when sheep eat their blocks.
+
+The API is entirely composed of the EatingRegistry class, which is documented in the source code (Javadoc coming soon™️️).

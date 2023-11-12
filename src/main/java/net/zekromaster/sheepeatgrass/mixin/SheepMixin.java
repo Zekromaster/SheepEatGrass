@@ -1,5 +1,7 @@
 package net.zekromaster.sheepeatgrass.mixin;
 
+import net.zekromaster.sheepeatgrass.SheepEatingRegistry;
+import net.zekromaster.sheepeatgrass.SimpleBlockReference;
 import net.zekromaster.sheepeatgrass.interfaces.ISheep;
 import net.minecraft.block.BlockBase;
 import net.minecraft.entity.EntityBase;
@@ -38,6 +40,27 @@ public abstract class SheepMixin extends AnimalBase implements ISheep {
 		return this.sheepTimer > 0;
 	}
 
+	@Unique
+	private boolean tryEating(
+		int x, int y, int z,
+		SheepEatingRegistry.EatingLocation location
+	) {
+		final var block = new SimpleBlockReference(this.level.getTileId(x, y, z), this.level.getTileMeta(x, y, z));
+		final var eatable = SheepEatingRegistry.INSTANCE.get(location, block);
+		eatable.ifPresent(
+			eatableBlock -> {
+				this.level.playLevelEvent(2001, x, y, z, block.id());
+				if (eatableBlock.metadata() == 0) {
+					this.level.setTile(x, y, z, eatableBlock.id());
+				} else {
+					this.level.setTileWithMetadata(x, y, z, eatableBlock.id(), eatableBlock.metadata());
+				}
+			}
+		);
+
+		return eatable.isPresent();
+	}
+
 	@Override
 	protected void tickHandSwing() {
 		super.tickHandSwing();
@@ -56,15 +79,10 @@ public abstract class SheepMixin extends AnimalBase implements ISheep {
 			x = MathHelper.floor(this.x);
 			y = MathHelper.floor(this.y);
 			z = MathHelper.floor(this.z);
-			boolean hasEaten = false;
-			if(this.level.getTileId(x, y, z) == BlockBase.TALLGRASS.id && this.level.getTileMeta(x, y, z) == 1) {
-				this.level.playLevelEvent(2001, x, y, z, BlockBase.TALLGRASS.id);
-				this.level.setTile(x, y, z, 0);
-				hasEaten = true;
-			} else if(this.level.getTileId(x, y - 1, z) == BlockBase.GRASS.id) {
-				this.level.playLevelEvent(2001, x, y - 1, z, BlockBase.GRASS.id);
-				this.level.setTile(x, y - 1, z, BlockBase.DIRT.id);
-				hasEaten = true;
+
+			boolean hasEaten = tryEating(x, y, z, SheepEatingRegistry.EatingLocation.SAME_BLOCK);
+			if (!hasEaten) {
+				hasEaten = tryEating(x, y - 1, z, SheepEatingRegistry.EatingLocation.UNDERNEATH);
 			}
 
 			if (hasEaten) {

@@ -4,6 +4,7 @@
   "package": "net.zekromaster.sheepeatgrass.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "BlockBaseMixin",
     "SheepMixin"
   ],
   "server": [],
