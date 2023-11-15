@@ -81,6 +81,7 @@ jar {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
+			artifactId = project.artifactId
 			from components.java
 		}
 	}
