@@ -7,7 +7,12 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 archivesBaseName = project.archives_base_name
-version = project.mod_version
+version =  project.next_version
+
+if (!project.hasProperty("releasing")) {
+	project.version = "${project.next_version}-SNAPSHOT"
+}
+
 group = project.maven_group
 
 loom {
@@ -80,8 +85,16 @@ publishing {
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-
+		repositories {
+			maven {
+				name = "GitHubPackages"
+				url = "https://maven.pkg.github.com/zekromaster/SheepEatGrass"
+				credentials {
+					username = System.getenv("GITHUB_ACTOR")
+					password = System.getenv("GITHUB_TOKEN")
+				}
+			}
+		}
 	}
 }
