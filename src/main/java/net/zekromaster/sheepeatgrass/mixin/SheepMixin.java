@@ -1,10 +1,10 @@
 package net.zekromaster.sheepeatgrass.mixin;
 
+import java.util.ArrayList;
 import net.zekromaster.minecraft.sheepeatgrass.api.SheepEatingRegistry;
 import net.zekromaster.minecraft.sheepeatgrass.api.blocks.BlockReference;
 import net.zekromaster.minecraft.sheepeatgrass.api.blocks.EatingLocation;
 import net.zekromaster.sheepeatgrass.interfaces.EatingSheep;
-import net.minecraft.block.BlockBase;
 import net.minecraft.entity.EntityBase;
 import net.minecraft.entity.animal.AnimalBase;
 import net.minecraft.entity.animal.Sheep;
@@ -17,9 +17,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 @Mixin(Sheep.class)
 public abstract class SheepMixin extends AnimalBase implements EatingSheep {
