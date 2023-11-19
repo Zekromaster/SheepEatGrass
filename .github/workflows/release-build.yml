@@ -1,4 +1,4 @@
-name: Build from Trunk
+name: Build Release
 
 on:
   workflow_dispatch:
@@ -42,8 +42,8 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "v${{ steps.version.outputs.VERSION }}"
-          prerelease: true
+          automatic_release_tag: "${{ steps.version.outputs.VERSION }}"
+          prerelease: false
           title: "v${{ steps.version.outputs.VERSION }}"
           files: |
             build/libs/*.jar
@@ -64,7 +64,7 @@ jobs:
       - name: Select next version
         id: select-next-version
         run: |-
-          case $INPUT_BUMP in
+          case ${{ github.event.inputs.bump }} in
             major) echo "NEXT_VERSION=${{ steps.version-bumps.outputs.major }}" >> "$GITHUB_OUTPUT";;
             minor) echo "NEXT_VERSION=${{ steps.version-bumps.outputs.minor }}" >> "$GITHUB_OUTPUT";;
             patch) echo "NEXT_VERSION=${{ steps.version-bumps.outputs.patch }}" >> "$GITHUB_OUTPUT";;
@@ -78,5 +78,5 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add gradle.properties
-          git commit -m "Bump version to ${{ steps.select-next-version.outputs.NEXT_VERSION }}"
+          git commit -m "chore: Bump version to ${{ steps.select-next-version.outputs.NEXT_VERSION }}"
           git push
