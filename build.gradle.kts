@@ -10,9 +10,9 @@ val loader_version: String by project
 val archives_base_name: String by project
 val next_version: String by project
 val artifact_id: String by project
-val use_github_packages = (project.findProperty("gpr.use") as String? ?: "false").toBoolean();
-val gh_username = project.findProperty("gpr.username") as String? ?: System.getenv("GITHUB_ACTOR");
-val gh_token = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN");
+val use_github_packages = (project.findProperty("gpr.use") as String? ?: "false").toBoolean()
+val gh_username = project.findProperty("gpr.username") as String? ?: System.getenv("GITHUB_ACTOR")
+val gh_token = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
