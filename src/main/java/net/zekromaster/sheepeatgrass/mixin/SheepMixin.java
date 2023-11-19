@@ -1,8 +1,9 @@
 package net.zekromaster.sheepeatgrass.mixin;
 
-import net.zekromaster.sheepeatgrass.SheepEatingRegistry;
-import net.zekromaster.sheepeatgrass.SimpleBlockReference;
-import net.zekromaster.sheepeatgrass.interfaces.ISheep;
+import net.zekromaster.minecraft.sheepeatgrass.api.SheepEatingRegistry;
+import net.zekromaster.minecraft.sheepeatgrass.api.blocks.BlockReference;
+import net.zekromaster.minecraft.sheepeatgrass.api.blocks.EatingLocation;
+import net.zekromaster.sheepeatgrass.interfaces.EatingSheep;
 import net.minecraft.block.BlockBase;
 import net.minecraft.entity.EntityBase;
 import net.minecraft.entity.animal.AnimalBase;
@@ -18,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Sheep.class)
-public abstract class SheepMixin extends AnimalBase implements ISheep {
+public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 	@Shadow public abstract void setSheared(boolean arg);
 
 	@Unique
@@ -43,17 +44,17 @@ public abstract class SheepMixin extends AnimalBase implements ISheep {
 	@Unique
 	private boolean tryEating(
 		int x, int y, int z,
-		SheepEatingRegistry.EatingLocation location
+		EatingLocation location
 	) {
-		final var block = new SimpleBlockReference(this.level.getTileId(x, y, z), this.level.getTileMeta(x, y, z));
-		final var eatable = SheepEatingRegistry.INSTANCE.get(location, block);
+		final var block = new BlockReference(this.level.getTileId(x, y, z), this.level.getTileMeta(x, y, z));
+		final var eatable = SheepEatingRegistry.getInstance().get(location, block);
 		eatable.ifPresent(
 			eatableBlock -> {
 				this.level.playLevelEvent(2001, x, y, z, block.id());
-				if (eatableBlock.metadata() == 0) {
+				if (eatableBlock.meta() == 0) {
 					this.level.setTile(x, y, z, eatableBlock.id());
 				} else {
-					this.level.setTileWithMetadata(x, y, z, eatableBlock.id(), eatableBlock.metadata());
+					this.level.setTileWithMetadata(x, y, z, eatableBlock.id(), eatableBlock.meta());
 				}
 			}
 		);
@@ -80,9 +81,9 @@ public abstract class SheepMixin extends AnimalBase implements ISheep {
 			y = MathHelper.floor(this.y);
 			z = MathHelper.floor(this.z);
 
-			boolean hasEaten = tryEating(x, y, z, SheepEatingRegistry.EatingLocation.SAME_BLOCK);
+			boolean hasEaten = tryEating(x, y, z, EatingLocation.SAME_BLOCK);
 			if (!hasEaten) {
-				hasEaten = tryEating(x, y - 1, z, SheepEatingRegistry.EatingLocation.UNDERNEATH);
+				hasEaten = tryEating(x, y - 1, z, EatingLocation.UNDERNEATH);
 			}
 
 			if (hasEaten) {
