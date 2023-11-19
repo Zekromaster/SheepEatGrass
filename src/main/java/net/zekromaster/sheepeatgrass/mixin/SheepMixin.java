@@ -1,6 +1,5 @@
 package net.zekromaster.sheepeatgrass.mixin;
 
-import java.util.ArrayList;
 import net.zekromaster.minecraft.sheepeatgrass.api.SheepEatingRegistry;
 import net.zekromaster.minecraft.sheepeatgrass.api.blocks.BlockReference;
 import net.zekromaster.minecraft.sheepeatgrass.api.blocks.EatingLocation;
@@ -22,8 +21,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 	@Shadow public abstract void setSheared(boolean arg);
 
+	@Shadow public abstract boolean isSheared();
+
 	@Unique
 	private int sheepTimer = 0;
+
 
 	protected SheepMixin(Level arg) {
 		super(arg);
@@ -42,6 +44,19 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 	}
 
 	@Unique
+	private boolean checkEatable(
+		int x, int y, int z,
+		EatingLocation location
+	){
+		final int actualX = x + location.offsetX();
+		final int actualY = y + location.offsetY();
+		final int actualZ = z + location.offsetZ();
+
+		final var block = new BlockReference(this.level.getTileId(actualX, actualY, actualZ), this.level.getTileMeta(actualX, actualY, actualZ));
+		return SheepEatingRegistry.getInstance().get(location, block).isPresent();
+	}
+
+	@Unique
 	private boolean tryEating(
 		int x, int y, int z,
 		EatingLocation location
@@ -52,6 +67,7 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 
 		final var block = new BlockReference(this.level.getTileId(actualX, actualY, actualZ), this.level.getTileMeta(actualX, actualY, actualZ));
 		final var eatable = SheepEatingRegistry.getInstance().get(location, block);
+
 		eatable.ifPresent(
 			eatableBlock -> {
 				this.level.playLevelEvent(2001, actualX, actualY, actualZ, block.id());
@@ -69,27 +85,22 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 	@Override
 	protected void tickHandSwing() {
 		super.tickHandSwing();
-		final var possibleEatingLocations = new ArrayList<>(SheepEatingRegistry.getInstance().possibleLocations());
-
-		possibleEatingLocations.sort((e1, e2) -> {
-			if (e1.offsetY() != e2.offsetY()) {
-				return e2.offsetY() - e1.offsetY();
-			}
-			if (e1.offsetX() != e2.offsetX()) {
-				return e1.offsetX() - e2.offsetX();
-			}
-			return e1.offsetZ() - e2.offsetZ();
-		});
 
 		int x = MathHelper.floor(this.x);
 		int y = MathHelper.floor(this.y);
 		int z = MathHelper.floor(this.z);
-		if(!this.method_633() && this.sheepTimer <= 0 && this.rand.nextInt(1000) == 0) {
-			this.tryEating(x, y, z, EatingLocation.SAME_BLOCK);
+		if(!this.method_633() && this.sheepTimer <= 0 && this.rand.nextInt(1000) == 0 && this.isSheared()) {
+			for (final var location : SheepEatingRegistry.getInstance().possibleLocations()) {
+				boolean isEatablePresent = checkEatable(x, y, z, location);
+				if (isEatablePresent) {
+					this.sheepTimer = 40;
+					break;
+				}
+			}
 		} else if(this.sheepTimer == 4) {
 			boolean hasEaten = false;
 
-			for (final var location : possibleEatingLocations) {
+			for (final var location : SheepEatingRegistry.getInstance().possibleLocations()) {
 				hasEaten = tryEating(x, y, z, location);
 				if (hasEaten) {
 					break;
@@ -107,15 +118,6 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 		super.updateDespawnCounter();
 		if(this.sheepTimer > 0) {
 			--this.sheepTimer;
-		}
-	}
-
-	@Override
-	public void handleStatus(byte arg) {
-		if(arg == 10) {
-			this.sheepTimer = 40;
-		} else {
-			super.handleStatus(arg);
 		}
 	}
 

@@ -71,6 +71,11 @@ dependencies {
 
 	implementation("org.slf4j:slf4j-api:1.8.0-beta4")
 	implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.2")
+	implementation("com.google.guava:guava:28.0-jre")
+	implementation("com.google.code.gson:gson:2.8.6")
+	implementation("org.apache.commons:commons-lang3:3.12.0")
+	implementation("commons-io:commons-io:2.11.0")
+	implementation("commons-codec:commons-codec:1.15")
 
 	if (use_github_packages) {
 		modImplementation(include("net.zekromaster.minecraft.sheepeatgrass:sheepeatgrass-api:0.1.0") as Any)
