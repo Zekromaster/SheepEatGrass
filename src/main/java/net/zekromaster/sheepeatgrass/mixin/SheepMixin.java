@@ -18,6 +18,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 @Mixin(Sheep.class)
 public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 	@Shadow public abstract void setSheared(boolean arg);
@@ -46,15 +49,19 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 		int x, int y, int z,
 		EatingLocation location
 	) {
-		final var block = new BlockReference(this.level.getTileId(x, y, z), this.level.getTileMeta(x, y, z));
+		final int actualX = x + location.offsetX();
+		final int actualY = y + location.offsetY();
+		final int actualZ = z + location.offsetZ();
+
+		final var block = new BlockReference(this.level.getTileId(actualX, actualY, actualZ), this.level.getTileMeta(actualX, actualY, actualZ));
 		final var eatable = SheepEatingRegistry.getInstance().get(location, block);
 		eatable.ifPresent(
 			eatableBlock -> {
-				this.level.playLevelEvent(2001, x, y, z, block.id());
+				this.level.playLevelEvent(2001, actualX, actualY, actualZ, block.id());
 				if (eatableBlock.meta() == 0) {
-					this.level.setTile(x, y, z, eatableBlock.id());
+					this.level.setTile(actualX, actualY, actualZ, eatableBlock.id());
 				} else {
-					this.level.setTileWithMetadata(x, y, z, eatableBlock.id(), eatableBlock.meta());
+					this.level.setTileWithMetadata(actualX, actualY, actualZ, eatableBlock.id(), eatableBlock.meta());
 				}
 			}
 		);
@@ -65,25 +72,31 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 	@Override
 	protected void tickHandSwing() {
 		super.tickHandSwing();
-		int x;
-		int y;
-		int z;
-		if(!this.method_633() && this.sheepTimer <= 0 && this.rand.nextInt(1000) == 0) {
-			x = MathHelper.floor(this.x);
-			y = MathHelper.floor(this.y);
-			z = MathHelper.floor(this.z);
-			if(this.level.getTileId(x, y, z) == BlockBase.TALLGRASS.id && this.level.getTileMeta(x, y, z) == 1 || this.level.getTileId(x, y - 1, z) == BlockBase.GRASS.id) {
-				this.sheepTimer = 40;
-				this.level.method_185(this, (byte)10);
-			}
-		} else if(this.sheepTimer == 4) {
-			x = MathHelper.floor(this.x);
-			y = MathHelper.floor(this.y);
-			z = MathHelper.floor(this.z);
+		final var possibleEatingLocations = new ArrayList<>(SheepEatingRegistry.getInstance().possibleLocations());
 
-			boolean hasEaten = tryEating(x, y, z, EatingLocation.SAME_BLOCK);
-			if (!hasEaten) {
-				hasEaten = tryEating(x, y - 1, z, EatingLocation.UNDERNEATH);
+		possibleEatingLocations.sort((e1, e2) -> {
+			if (e1.offsetY() != e2.offsetY()) {
+				return e2.offsetY() - e1.offsetY();
+			}
+			if (e1.offsetX() != e2.offsetX()) {
+				return e1.offsetX() - e2.offsetX();
+			}
+			return e1.offsetZ() - e2.offsetZ();
+		});
+
+		int x = MathHelper.floor(this.x);
+		int y = MathHelper.floor(this.y);
+		int z = MathHelper.floor(this.z);
+		if(!this.method_633() && this.sheepTimer <= 0 && this.rand.nextInt(1000) == 0) {
+			this.tryEating(x, y, z, EatingLocation.SAME_BLOCK);
+		} else if(this.sheepTimer == 4) {
+			boolean hasEaten = false;
+
+			for (final var location : possibleEatingLocations) {
+				hasEaten = tryEating(x, y, z, location);
+				if (hasEaten) {
+					break;
+				}
 			}
 
 			if (hasEaten) {
