@@ -10,6 +10,7 @@ val loader_version: String by project
 val archives_base_name: String by project
 val next_version: String by project
 val artifact_id: String by project
+val api_version: String by project
 val use_github_packages = (project.findProperty("gpr.use") as String? ?: "false").toBoolean()
 val gh_username = project.findProperty("gpr.username") as String? ?: System.getenv("GITHUB_ACTOR")
 val gh_token = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
@@ -69,19 +70,13 @@ dependencies {
 	mappings("net.glasslauncher:bin:${yarn_mappings}")
 	modImplementation("babric:fabric-loader:${loader_version}")
 
-	implementation("org.slf4j:slf4j-api:1.8.0-beta4")
-	implementation("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.2")
-	implementation("com.google.guava:guava:28.0-jre")
-	implementation("com.google.code.gson:gson:2.8.6")
-	implementation("org.apache.commons:commons-lang3:3.12.0")
-	implementation("commons-io:commons-io:2.11.0")
-	implementation("commons-codec:commons-codec:1.15")
+	val api_package =
+			if (use_github_packages)
+				"net.zekromaster.minecraft.sheepeatgrass:sheepeatgrass-api"
+			else
+				"com.github.Zekromaster:SheepEatGrass.API"
 
-	if (use_github_packages) {
-		modImplementation(include("net.zekromaster.minecraft.sheepeatgrass:sheepeatgrass-api:0.1.0") as Any)
-	} else {
-		modImplementation(include("com.github.Zekromaster:SheepEatGrass.API:0.1.0") as Any)
-	}
+	modImplementation(include("${api_package}:${api_version}") as Any)
 }
 
 tasks {

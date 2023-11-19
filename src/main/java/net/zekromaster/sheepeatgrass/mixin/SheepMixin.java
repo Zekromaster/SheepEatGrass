@@ -48,9 +48,9 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 		int x, int y, int z,
 		EatingLocation location
 	){
-		final int actualX = x + location.offsetX();
-		final int actualY = y + location.offsetY();
-		final int actualZ = z + location.offsetZ();
+		final int actualX = x + location.offsetX;
+		final int actualY = y + location.offsetY;
+		final int actualZ = z + location.offsetZ;
 
 		final var block = new BlockReference(this.level.getTileId(actualX, actualY, actualZ), this.level.getTileMeta(actualX, actualY, actualZ));
 		return SheepEatingRegistry.getInstance().get(location, block).isPresent();
@@ -61,9 +61,9 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 		int x, int y, int z,
 		EatingLocation location
 	) {
-		final int actualX = x + location.offsetX();
-		final int actualY = y + location.offsetY();
-		final int actualZ = z + location.offsetZ();
+		final int actualX = x + location.offsetX;
+		final int actualY = y + location.offsetY;
+		final int actualZ = z + location.offsetZ;
 
 		final var block = new BlockReference(this.level.getTileId(actualX, actualY, actualZ), this.level.getTileMeta(actualX, actualY, actualZ));
 		final var eatable = SheepEatingRegistry.getInstance().get(location, block);
@@ -89,6 +89,7 @@ public abstract class SheepMixin extends AnimalBase implements EatingSheep {
 		int x = MathHelper.floor(this.x);
 		int y = MathHelper.floor(this.y);
 		int z = MathHelper.floor(this.z);
+
 		if(!this.method_633() && this.sheepTimer <= 0 && this.rand.nextInt(1000) == 0 && this.isSheared()) {
 			for (final var location : SheepEatingRegistry.getInstance().possibleLocations()) {
 				boolean isEatablePresent = checkEatable(x, y, z, location);
