@@ -1,6 +1,7 @@
 plugins {
 	id("babric-loom") version "1.1.7"
 	id("maven-publish")
+	id("com.modrinth.minotaur") version "2.+"
 }
 
 val maven_group: String by project
@@ -11,9 +12,17 @@ val archives_base_name: String by project
 val next_version: String by project
 val artifact_id: String by project
 val api_version: String by project
-val use_github_packages = (project.findProperty("gpr.use") as String? ?: "false").toBoolean()
+
+val use_github_packages = (project.findProperty("gpr.use") as String? ?: System.getenv("GITHUB_USE_PACKAGE_REGISTRY") ?: "false").toBoolean()
 val gh_username = project.findProperty("gpr.username") as String? ?: System.getenv("GITHUB_ACTOR")
 val gh_token = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+val gh_repo = project.findProperty("gpr.repo") as String
+
+val use_modrinth = (project.findProperty("modrinth.use") as String? ?: System.getenv("MODRINTH_USE") ?: "false").toBoolean()
+val modrinth_id = project.findProperty("modrinth.id") as String
+val modrinth_token = project.findProperty("modrinth.token") as String? ?: System.getenv("MODRINTH_TOKEN")
+
+val releasing = project.hasProperty("releasing")
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
@@ -24,7 +33,7 @@ java {
 group = maven_group
 version = next_version
 
-if (!project.hasProperty("releasing")) {
+if (!releasing) {
 	version = "${version}-SNAPSHOT"
 }
 
@@ -93,7 +102,7 @@ tasks.withType<JavaCompile>().configureEach { options.release = 17 }
 
 tasks.jar {
 	from("LICENSE") {
-		rename { "${this}_${archives_base_name}"}
+		rename { "LICENSE_${archives_base_name}"}
 	}
 }
 
@@ -108,12 +117,36 @@ if (use_github_packages) {
 		repositories {
 			maven {
 				name = "GitHubPackages"
-				url = uri("https://maven.pkg.github.com/Zekromaster/SheepEatGrass") // Github Package
+				url = uri("https://maven.pkg.github.com/${gh_repo}") // Github Package
 				credentials {
 					username = gh_username
 					password = gh_token
 				}
 			}
 		}
+	}
+}
+
+if (use_modrinth) {
+	modrinth {
+		token.set(modrinth_token)
+		projectId.set(modrinth_id)
+		versionNumber.set(project.version.toString())
+		versionType.set("release")
+		uploadFile.set(tasks.remapJar)
+		gameVersions.addAll("b1.7.3")
+		loaders.add("fabric")
+		syncBodyFrom.set("README.md")
+	}
+
+	tasks.modrinth {
+		dependsOn(tasks.modrinthSyncBody)
+	}
+}
+
+task("upload") {
+	dependsOn(tasks.publish)
+	if (use_modrinth && releasing) {
+		dependsOn(tasks.modrinth)
 	}
 }

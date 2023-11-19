@@ -8,6 +8,10 @@ permissions:
   contents: write
   packages: write
 
+env:
+  GITHUB_USE_PACKAGE_REGISTRY: true
+  MODRINTH_USE: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +29,8 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy release
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -39,6 +45,6 @@ jobs:
       - name: Publish maven package
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: publish
+          arguments: upload
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

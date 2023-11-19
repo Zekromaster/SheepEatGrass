@@ -16,6 +16,10 @@ permissions:
   contents: write
   packages: write
 
+env:
+  GITHUB_USE_PACKAGE_REGISTRY: true
+  MODRINTH_USE: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,6 +41,8 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build -Preleasing
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy release
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -51,9 +57,10 @@ jobs:
       - name: Publish maven package
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: publish -Preleasing
+          arguments: upload -Preleasing
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
       - name: Calculate version bumps
         id: version-bumps
