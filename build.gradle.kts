@@ -1,3 +1,5 @@
+import java.nio.charset.Charset
+
 plugins {
 	id("babric-loom") version "1.1.7"
 	id("maven-publish")
@@ -136,7 +138,7 @@ if (use_modrinth) {
 		uploadFile.set(tasks.remapJar)
 		gameVersions.addAll("b1.7.3")
 		loaders.add("fabric")
-		syncBodyFrom.set("README.md")
+		syncBodyFrom = project.file("README.md").readText(Charset.forName("UTF-8"))
 	}
 
 	tasks.modrinth {
